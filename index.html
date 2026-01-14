@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotlight Challenge: 3 Levels</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(145deg, #6a11cb 0%, #2575fc 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '⭐';
+            position: absolute;
+            font-size: 100px;
+            opacity: 0.1;
+            top: 10px;
+            right: 20px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .level-selector {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            flex-wrap: wrap;
+        }
+
+        .level-btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 200px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .level-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .level-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .level-btn:hover::after {
+            left: 100%;
+        }
+
+        .level-1 {
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            color: white;
+        }
+
+        .level-2 {
+            background: linear-gradient(45deg, #ff7e5f, #feb47b);
+            color: white;
+        }
+
+        .level-3 {
+            background: linear-gradient(45deg, #8a2387, #e94057, #f27121);
+            color: white;
+        }
+
+        /* ОБЩИЕ СТИЛИ ДЛЯ УРОВНЕЙ */
+        .level-screen {
+            display: none;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .level-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f1f8ff;
+            border-radius: 15px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            padding: 8px 16px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 180px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #2196F3, #21CBF3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(45deg, #FF9800, #FF5722);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        /* УРОВЕНЬ 1 - ФЛЕШ-КАРТОЧКИ */
+        .flashcard-container {
+            perspective: 1000px;
+            margin: 30px auto;
+            width: 300px;
+            height: 400px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(50, 50, 93, 0.1), 0 5px 15px rgba(0, 0, 0, 0.07);
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .card-back {
+            background: white;
+            transform: rotateY(180deg);
+            border: 3px solid #667eea;
+        }
+
+        .card-number {
+            font-size: 5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .card-text {
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .the-part {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .ending-part {
+            color: #FF6B6B;
+            font-weight: bold;
+        }
+
+        .base-part {
+            color: #333;
+        }
+
+        /* УРОВЕНЬ 2 - ОБЛАКА */
+        .clouds-game {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FF);
+            border-radius: 20px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50px;
+            padding: 20px 30px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 120px;
+            border: 3px solid transparent;
+        }
+
+        .cloud:hover {
+            transform: scale(1.1);
+            border-color: #4CAF50;
+        }
+
+        .cloud.correct {
+            background: #C8E6C9;
+            border-color: #4CAF50;
+        }
+
+        .cloud.wrong {
+            background: #FFCDD2;
+            border-color: #F44336;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .target-number {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            border: 5px solid #FF9800;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .target-the {
+            color: #2196F3;
+            font-size: 2rem;
+        }
+
+        .target-word {
+            color: #333;
+        }
+
+        .lives {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .heart {
+            font-size: 2.5rem;
+            color: #FF5252;
+            transition: all 0.3s;
+        }
+
+        .heart.lost {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        .timer-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        .timer-bonus {
+            position: absolute;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4CAF50;
+            animation: floatUp 1s forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-100px); }
+        }
+
+        /* УРОВЕНЬ 3 - ГОРОД */
+        .city-map {
+            position: relative;
+            height: 500px;
+            background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+            border-radius: 20px;
+            margin: 20px 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="%234CAF50" stroke-width="0.5"/><path d="M50,0 L50,100 M0,50 L100,50" stroke="%234CAF50" stroke-width="0.3"/></svg>');
+            background-size: 50px 50px;
+            border: 3px solid #4CAF50;
+            overflow: hidden;
+        }
+
+        .building {
+            position: absolute;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            min-width: 140px;
+            border: 3px solid transparent;
+            z-index: 10;
+        }
+
+        .building:hover {
+            transform: scale(1.1);
+            border-color: #2196F3;
+            z-index: 100;
+        }
+
+        .building.visited {
+            background: #bbdefb;
+            border-color: #2196F3;
+        }
+
+        /* ЭЛЕМЕНТЫ ЗАДАНИЙ УРОВНЯ 3 */
+        .was-were-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .was-were-table th, .was-were-table td {
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .was-were-table th {
+            background: #2196F3;
+            color: white;
+            font-weight: bold;
+        }
+
+        .was-were-table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        .sentence-parts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            min-height: 60px;
+            border: 2px dashed #ccc;
+        }
+
+        .word-piece {
+            background: #e3f2fd;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            cursor: move;
+            user-select: none;
+            border: 2px solid #2196F3;
+            transition: all 0.3s;
+        }
+
+        .word-piece.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        .word-piece.placed {
+            background: #c8e6c9;
+            border-color: #4CAF50;
+        }
+
+        .gap-input {
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+            margin: 0 10px;
+        }
+
+        .multiple-choice {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .choice-btn {
+            padding: 20px;
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .choice-btn:hover {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+
+        .choice-btn.selected {
+            background: #2196F3;
+            color: white;
+            border-color: #1976d2;
+        }
+
+        .negative-example {
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #f44336;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        .tense-reminder {
+            background: #fff3e0;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #ff9800;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        .place-image {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        @keyframes correctFlash {
+            0% { background-color: #c8e6c9; }
+            50% { background-color: #a5d6a7; }
+            100% { background-color: #c8e6c9; }
+        }
+
+        .correct-flash {
+            animation: correctFlash 0.5s 2;
+        }
+
+        /* РЕЗУЛЬТАТЫ И ФИДБЭК */
+        .results-screen {
+            display: none;
+            padding: 50px;
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #FF9800;
+            margin: 30px 0;
+            text-shadow: 3px 3px 0 #FF5722;
+        }
+
+        .stars {
+            font-size: 3rem;
+            margin: 20px 0;
+            color: #FFD700;
+        }
+
+        .feedback {
+            min-height: 60px;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .feedback.correct {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* СЕКРЕТНОЕ СЛОВО */
+        .secret-word {
+            font-size: 3rem;
+            color: #FF9800;
+            font-weight: bold;
+            margin: 30px 0;
+            padding: 20px;
+            background: #FFF3E0;
+            border-radius: 15px;
+            border: 3px dashed #FF9800;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        /* МОДАЛЬНОЕ ОКНО */
+        #rules-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #FF5252;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1s infinite;
+        }
+
+        /* МОБИЛЬНАЯ АДАПТАЦИЯ */
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 10px;
+                border-radius: 20px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .level-btn {
+                padding: 15px 25px;
+                min-width: 150px;
+                font-size: 1.2rem;
+            }
+
+            .level-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .level-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .flashcard-container {
+                width: 250px;
+                height: 350px;
+            }
+
+            .card-number {
+                font-size: 4rem;
+            }
+
+            .card-text {
+                font-size: 1.5rem;
+            }
+
+            .target-number {
+                font-size: 2.5rem;
+                padding: 15px 25px;
+            }
+
+            .cloud {
+                padding: 15px 20px;
+                font-size: 1.5rem;
+                min-width: 100px;
+            }
+
+            .city-map {
+                height: 400px;
+            }
+
+            .building {
+                min-width: 120px;
+                padding: 10px;
+                font-size: 1.2rem;
+            }
+
+            .was-were-table th, .was-were-table td {
+                padding: 10px;
+                font-size: 1rem;
+            }
+
+            .multiple-choice {
+                grid-template-columns: 1fr;
+            }
+
+            .timer-container {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px auto;
+                display: inline-block;
+            }
+
+            .secret-word {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .level-btn {
+                min-width: 120px;
+                font-size: 1rem;
+            }
+
+            .flashcard-container {
+                width: 200px;
+                height: 300px;
+            }
+
+            .card-number {
+                font-size: 3rem;
+            }
+
+            .city-map {
+                height: 350px;
+            }
+
+            .building {
+                min-width: 100px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>✨ Spotlight Challenge ✨</h1>
+            <div class="subtitle">English Grammar Adventure</div>
+        </div>
+
+        <!-- ВЫБОР УРОВНЯ -->
+        <div class="level-selector" id="level-selector">
+            <button class="level-btn level-1" onclick="startLevel(1)">
+                <div>🎴 Level 1</div>
+                <div style="font-size: 1rem; margin-top: 10px;">Flash Cards</div>
+            </button>
+            <button class="level-btn level-2" onclick="startLevel(2)">
+                <div>☁️ Level 2</div>
+                <div style="font-size: 1rem; margin-top: 10px;">Cloud Jump</div>
+            </button>
+            <button class="level-btn level-3" onclick="startLevel(3)">
+                <div>🏙️ Level 3</div>
+                <div style="font-size: 1rem; margin-top: 10px;">City Quest</div>
+            </button>
+        </div>
+
+        <!-- ========== УРОВЕНЬ 1 - ФЛЕШ-КАРТОЧКИ ========== -->
+        <div class="level-screen" id="level-1-screen">
+            <div class="level-header">
+                <button class="btn btn-warning" onclick="backToMenu()">← Меню</button>
+                <div class="stats">
+                    <div class="stat">🎴 Карточки: <span id="card-counter">1/10</span></div>
+                    <div class="stat">⭐ Очки: <span id="score-level1">0</span></div>
+                </div>
+            </div>
+
+            <h2 style="color: #00b09b; margin-bottom: 20px;">Level 1: Ordinal Numbers Flash Cards</h2>
+            <p style="margin-bottom: 30px; font-size: 1.2rem;">Кликай на карточку, чтобы увидеть порядковое числительное. Запомни их все!</p>
+
+            <div class="flashcard-container">
+                <div class="flashcard" id="flashcard" onclick="flipCard()">
+                    <div class="card-face card-front">
+                        <div class="card-number" id="card-number">42</div>
+                        <div style="font-size: 1.5rem;">Нажми, чтобы увидеть ответ</div>
+                    </div>
+                    <div class="card-face card-back">
+                        <div class="card-text">
+                            <span class="the-part">the</span> 
+                            <span class="base-part" id="ordinal-text">forty-</span>
+                            <span class="ending-part" id="ordinal-ending">second</span>
+                        </div>
+                        <div style="margin-top: 30px; font-size: 2.5rem; color: #333;" id="ordinal-short">42nd</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" onclick="nextCard()">Следующая карточка →</button>
+                <button class="btn btn-success" onclick="finishLevel(1)">Завершить уровень</button>
+            </div>
+        </div>
+
+        <!-- ========== УРОВЕНЬ 2 - ОБЛАКА ========== -->
+        <div class="level-screen" id="level-2-screen">
+            <div class="level-header">
+                <button class="btn btn-warning" onclick="backToMenu()">← Меню</button>
+                <div class="stats">
+                    <div class="stat">🎯 Правильно: <span id="correct-count">0</span></div>
+                    <div class="stat">⭐ Очки: <span id="score-level2">0</span></div>
+                    <div class="stat">⚡ Бонусы: <span id="bonus-count">0</span></div>
+                </div>
+            </div>
+
+            <h2 style="color: #ff7e5f; margin-bottom: 10px;">Level 2: Cloud Jump Challenge</h2>
+            <p style="margin-bottom: 20px; font-size: 1.2rem;">Выбирай правильный вариант на облаке! У тебя 3 жизни и таймер.</p>
+
+            <div class="timer-container">
+                ⏱️ Время: <span id="timer">60</span>с
+            </div>
+
+            <div class="lives" id="lives-container">
+                <div class="heart">❤️</div>
+                <div class="heart">❤️</div>
+                <div class="heart">❤️</div>
+            </div>
+
+            <div class="clouds-game" id="clouds-game">
+                <div class="target-number">
+                    <span class="target-the">the</span> 
+                    <span class="target-word" id="target-word">fourth</span>
+                </div>
+                <!-- Облака будут созданы скриптом -->
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-success" onclick="finishLevel(2)">Завершить игру</button>
+            </div>
+        </div>
+
+        <!-- ========== УРОВЕНЬ 3 - ГОРОД ========== -->
+        <div class="level-screen" id="level-3-screen">
+            <div class="level-header">
+                <button class="btn btn-warning" onclick="backToMenu()">← Меню</button>
+                <div class="stats">
+                    <div class="stat">🏙️ Места: <span id="places-count">0/8</span></div>
+                    <div class="stat">✅ Задания: <span id="tasks-count">0/24</span></div>
+                    <div class="stat">⭐ Очки: <span id="score-level3">0</span></div>
+                </div>
+            </div>
+            
+            <h2 style="color: #8a2387; margin-bottom: 10px;">Level 3: City Grammar Quest</h2>
+            <p style="margin-bottom: 20px; font-size: 1.2rem;">Посети места в городе и выполни задания на was/were!</p>
+
+            <!-- Карта города -->
+            <div class="city-map" id="city-map">
+                <!-- Здания будут созданы скриптом -->
+            </div>
+
+            <!-- Экран заданий -->
+            <div id="task-container" style="display: none;">
+                <div class="task-screen" id="task-screen">
+                    <!-- Задания будут загружены динамически -->
+                </div>
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="backToMap()">← Назад к карте</button>
+                    <button class="btn btn-primary" id="btn-next-task" disabled>Следующее задание →</button>
+                </div>
+            </div>
+
+            <div class="controls" id="map-controls">
+                <button class="btn btn-success" onclick="finishLevel(3)">Завершить игру</button>
+            </div>
+        </div>
+
+        <!-- ЭКРАН РЕЗУЛЬТАТОВ -->
+        <div class="results-screen" id="results-screen">
+            <h2>🎉 Результаты уровня!</h2>
+            <div class="score-display" id="final-score">0</div>
+            <div class="stars" id="stars">⭐⭐⭐</div>
+            <div id="result-message" style="font-size: 1.4rem; margin: 20px 0;"></div>
+            
+            <!-- Секретное слово -->
+            <div id="secret-word-container" style="display: none;">
+                <div class="secret-word" id="secret-word">АНАНАС</div>
+                <p style="font-size: 1.2rem; color: #666;">🎉 Поздравляем! Вы прошли все уровни на 100%!</p>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="backToMenu()">Выбрать другой уровень</button>
+                <button class="btn btn-success" onclick="restartLevel()">Играть снова</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ПРАВИЛ -->
+    <div id="rules-modal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal()">×</button>
+            <h2 style="color: #2196F3; margin-bottom: 20px;">📚 Правила игры и справочник</h2>
+            
+            <div style="margin-bottom: 30px;">
+                <h3>🎴 Level 1: Flash Cards</h3>
+                <p>• Нажимай на карточку, чтобы перевернуть ее</p>
+                <p>• Запомни как пишутся порядковые числительные</p>
+                <p>• <span style="color: #2196F3; font-weight: bold">The</span> - всегда используется с порядковыми числительными</p>
+                <p>• Окончания: <span style="color: #FF6B6B; font-weight: bold">-st</span> (1st), <span style="color: #FF6B6B; font-weight: bold">-nd</span> (2nd), <span style="color: #FF6B6B; font-weight: bold">-rd</span> (3rd), <span style="color: #FF6B6B; font-weight: bold">-th</span> (4th, 5th...)</p>
+                <p>• <span style="color: #4CAF50; font-weight: bold">Двузначные числа пишутся через дефис: twenty-one, forty-five</span></p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3>☁️ Level 2: Cloud Jump</h3>
+                <p>• Читай слово в рамочке сверху</p>
+                <p>• Выбирай правильный числовой вариант на облаках</p>
+                <p>• У тебя 3 жизни ❤️❤️❤️</p>
+                <p>• Чем быстрее отвечаешь - тем больше бонусов ⚡</p>
+                <p>• Время ограничено! ⏱️</p>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <h3>🏙️ Level 3: City Quest</h3>
+                <p>• Кликай на здания на карте</p>
+                <p>• Выполняй задания на was/were</p>
+                <p>• Используй сокращенную форму отрицаний (wasn't/weren't)</p>
+                <p>• Собирай все награды!</p>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #E3F2FD; border-radius: 10px;">
+                <h4>🎯 Примеры порядковых числительных:</h4>
+                <p>1st = <strong>the first</strong></p>
+                <p>2nd = <strong>the second</strong></p>
+                <p>3rd = <strong>the third</strong></p>
+                <p>4th = <strong>the fourth</strong></p>
+                <p>5th = <strong>the fifth</strong></p>
+                <p>12th = <strong>the twelfth</strong></p>
+                <p>20th = <strong>the twentieth</strong></p>
+                <p>21st = <strong>the twenty-first</strong> (через дефис!)</p>
+                <p>32nd = <strong>the thirty-second</strong> (через дефис!)</p>
+                <p>45th = <strong>the forty-fifth</strong> (через дефис!)</p>
+                <p>98th = <strong>the ninety-eighth</strong> (через дефис!)</p>
+                <p>100th = <strong>the hundredth</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- КНОПКА ПРАВИЛ -->
+    <button style="position: fixed; bottom: 20px; right: 20px; background: #2196F3; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3);" onclick="showModal()">?</button>
+
+    <script>
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        let currentLevel = 0;
+        let completedLevels = {1: false, 2: false, 3: false};
+        
+        // Состояние для Level 1
+        const level1State = {
+            currentCard: 0,
+            score: 0,
+            cards: []
+        };
+        
+        // Состояние для Level 2
+        const level2State = {
+            score: 0,
+            lives: 3,
+            correct: 0,
+            bonus: 0,
+            timer: 60, // Изменено на 60 секунд
+            timerInterval: null,
+            currentWord: '',
+            correctAnswer: 0,
+            options: [],
+            startTime: 0
+        };
+        
+        // Состояние для Level 3
+        const level3State = {
+            currentPlace: null,
+            currentTaskIndex: 0,
+            score: 0,
+            visitedPlaces: new Set(),
+            completedTasks: new Set(),
+            draggedElement: null
+        };
+
+        // ========== ОБЩИЕ ФУНКЦИИ ==========
+        function numberToOrdinal(num) {
+            if (num < 1 || num > 100) return `the ${num}th`;
+            
+            const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+            const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+            const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+            
+            const ordinalOnes = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth', 'ninth'];
+            const ordinalTeens = ['tenth', 'eleventh', 'twelfth', 'thirteenth', 'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 'nineteenth'];
+            const ordinalTens = ['', '', 'twentieth', 'thirtieth', 'fortieth', 'fiftieth', 'sixtieth', 'seventieth', 'eightieth', 'ninetieth'];
+            
+            // Специальный случай для 100
+            if (num === 100) return 'the hundredth';
+            
+            if (num < 10) return `the ${ordinalOnes[num]}`;
+            if (num < 20) return `the ${ordinalTeens[num - 10]}`;
+            if (num % 10 === 0) return `the ${ordinalTens[Math.floor(num / 10)]}`;
+            
+            const tensPart = Math.floor(num / 10);
+            const onesPart = num % 10;
+            
+            // ВСЕГДА через дефис для двузначных чисел
+            return `the ${tens[tensPart]}-${ordinalOnes[onesPart]}`;
+        }
+
+        function getOrdinalSuffix(num) {
+            if (num % 100 >= 11 && num % 100 <= 13) return num + 'th';
+            switch (num % 10) {
+                case 1: return num + 'st';
+                case 2: return num + 'nd';
+                case 3: return num + 'rd';
+                default: return num + 'th';
+            }
+        }
+
+        function shuffleArray(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        // ========== МОДАЛЬНОЕ ОКНО ==========
+        function showModal() {
+            document.getElementById('rules-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('rules-modal').style.display = 'none';
+        }
+
+        document.getElementById('rules-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // ========== УПРАВЛЕНИЕ УРОВНЯМИ ==========
+        function startLevel(level) {
+            currentLevel = level;
+            document.getElementById('level-selector').style.display = 'none';
+            document.getElementById('results-screen').style.display = 'none';
+            document.getElementById(`level-${level}-screen`).style.display = 'block';
+            
+            switch(level) {
+                case 1: startLevel1(); break;
+                case 2: startLevel2(); break;
+                case 3: startLevel3(); break;
+            }
+        }
+
+        function backToMenu() {
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`level-${i}-screen`).style.display = 'none';
+            }
+            document.getElementById('results-screen').style.display = 'none';
+            document.getElementById('level-selector').style.display = 'flex';
+            
+            // Остановить таймер Level 2
+            if (level2State.timerInterval) {
+                clearInterval(level2State.timerInterval);
+                level2State.timerInterval = null;
+            }
+        }
+
+        function finishLevel(level) {
+            document.getElementById(`level-${level}-screen`).style.display = 'none';
+            
+            let score = 0;
+            let message = '';
+            let isPerfect = false;
+            
+            switch(level) {
+                case 1:
+                    score = level1State.score;
+                    message = `Ты изучил ${level1State.cards.length} карточек!<br>Отличная работа с порядковыми числительными!`;
+                    isPerfect = level1State.cards.length === 10;
+                    if (isPerfect) completedLevels[1] = true;
+                    break;
+                case 2:
+                    score = level2State.score;
+                    message = `Правильных ответов: ${level2State.correct}<br>Бонусов за скорость: ${level2State.bonus}`;
+                    if (level2State.lives <= 0) {
+                        message += '<br>💔 Закончились жизни!';
+                    } else {
+                        message += `<br>Осталось жизней: ${level2State.lives}`;
+                    }
+                    isPerfect = level2State.score >= 50 && level2State.lives === 3;
+                    if (isPerfect) completedLevels[2] = true;
+                    // Остановить таймер
+                    if (level2State.timerInterval) {
+                        clearInterval(level2State.timerInterval);
+                        level2State.timerInterval = null;
+                    }
+                    break;
+                case 3:
+                    score = level3State.score;
+                    message = `Ты посетил ${level3State.visitedPlaces.size} мест!<br>`;
+                    message += `Выполнил ${level3State.completedTasks.size} заданий.<br>`;
+                    if (level3State.visitedPlaces.size === 8) {
+                        message += '🎉 Ты посетил все места в городе!';
+                    }
+                    isPerfect = level3State.visitedPlaces.size === 8 && level3State.completedTasks.size === 24;
+                    if (isPerfect) completedLevels[3] = true;
+                    break;
+            }
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('result-message').innerHTML = message;
+            
+            let stars = '⭐';
+            if (score > 80) stars = '⭐⭐⭐';
+            else if (score > 50) stars = '⭐⭐';
+            document.getElementById('stars').textContent = stars;
+            
+            // Показать секретное слово, если все уровни пройдены на 100%
+            const allPerfect = completedLevels[1] && completedLevels[2] && completedLevels[3];
+            document.getElementById('secret-word-container').style.display = allPerfect ? 'block' : 'none';
+            
+            document.getElementById('results-screen').style.display = 'block';
+        }
+
+        function restartLevel() {
+            document.getElementById('results-screen').style.display = 'none';
+            startLevel(currentLevel);
+        }
+
+        // ========== УРОВЕНЬ 1 - ФЛЕШ-КАРТОЧКИ ==========
+        function startLevel1() {
+            level1State.cards = [];
+            level1State.currentCard = 0;
+            level1State.score = 0;
+            
+            const numbers = new Set();
+            while (numbers.size < 10) {
+                numbers.add(Math.floor(Math.random() * 100) + 1);
+            }
+            level1State.cards = Array.from(numbers);
+            
+            updateCard();
+            updateLevel1Score();
+        }
+
+        function flipCard() {
+            const card = document.getElementById('flashcard');
+            const cardNumber = level1State.cards[level1State.currentCard];
+            
+            card.classList.add('flipped');
+            
+            const fullOrdinal = numberToOrdinal(cardNumber);
+            const ordinalWithoutThe = fullOrdinal.replace('the ', '');
+            
+            // Для корректного разделения на части с учетом дефиса
+            const parts = ordinalWithoutThe.split('-');
+            
+            if (parts.length === 2) {
+                // Двузначное число с дефисом: "ninety-eighth"
+                document.getElementById('ordinal-text').textContent = parts[0] + '-';
+                document.getElementById('ordinal-ending').textContent = parts[1];
+            } else {
+                // Простое число без дефиса: "first", "twentieth"
+                const endings = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 
+                               'eighth', 'ninth', 'tenth', 'eleventh', 'twelfth', 'thirteenth', 
+                               'fourteenth', 'fifteenth', 'sixteenth', 'seventeenth', 'eighteenth', 
+                               'nineteenth', 'twentieth', 'thirtieth', 'fortieth', 'fiftieth', 
+                               'sixtieth', 'seventieth', 'eightieth', 'ninetieth', 'hundredth'];
+                
+                let base = ordinalWithoutThe;
+                let ending = '';
+                
+                for (const end of endings.sort((a, b) => b.length - a.length)) {
+                    if (ordinalWithoutThe.endsWith(end)) {
+                        base = ordinalWithoutThe.slice(0, -end.length);
+                        ending = end;
+                        break;
+                    }
+                }
+                
+                if (!ending) {
+                    const shortEndings = ['th', 'st', 'nd', 'rd'];
+                    for (const end of shortEndings) {
+                        if (ordinalWithoutThe.endsWith(end)) {
+                            base = ordinalWithoutThe.slice(0, -end.length);
+                            ending = end;
+                            break;
+                        }
+                    }
+                }
+                
+                document.getElementById('ordinal-text').textContent = base;
+                document.getElementById('ordinal-ending').textContent = ending;
+            }
+            
+            document.getElementById('ordinal-short').textContent = getOrdinalSuffix(cardNumber);
+        }
+
+        function updateCard() {
+            const cardNumber = level1State.cards[level1State.currentCard];
+            document.getElementById('card-number').textContent = cardNumber;
+            document.getElementById('card-counter').textContent = `${level1State.currentCard + 1}/10`;
+            document.getElementById('flashcard').classList.remove('flipped');
+        }
+
+        function nextCard() {
+            level1State.currentCard++;
+            if (level1State.currentCard >= level1State.cards.length) {
+                finishLevel(1);
+                return;
+            }
+            updateCard();
+        }
+
+        function updateLevel1Score() {
+            document.getElementById('score-level1').textContent = level1State.score;
+        }
+
+        // ========== УРОВЕНЬ 2 - ОБЛАКА ==========
+        function startLevel2() {
+            level2State.score = 0;
+            level2State.lives = 3;
+            level2State.correct = 0;
+            level2State.bonus = 0;
+            level2State.timer = 60; // 1 минута
+            
+            document.querySelectorAll('.heart').forEach(heart => {
+                heart.classList.remove('lost');
+            });
+            
+            updateLevel2Display();
+            startTimer();
+            generateNewQuestion();
+        }
+
+        function startTimer() {
+            if (level2State.timerInterval) {
+                clearInterval(level2State.timerInterval);
+            }
+            
+            level2State.timerInterval = setInterval(() => {
+                level2State.timer--;
+                document.getElementById('timer').textContent = level2State.timer;
+                
+                if (level2State.timer <= 0) {
+                    finishLevel(2);
+                }
+            }, 1000);
+        }
+
+        function generateNewQuestion() {
+            const cloudsGame = document.getElementById('clouds-game');
+            cloudsGame.querySelectorAll('.cloud').forEach(cloud => cloud.remove());
+            
+            const randomNumber = Math.floor(Math.random() * 100) + 1;
+            const ordinalWord = numberToOrdinal(randomNumber).replace('the ', '');
+            level2State.currentWord = ordinalWord;
+            level2State.correctAnswer = randomNumber;
+            level2State.startTime = Date.now();
+            
+            document.getElementById('target-word').textContent = ordinalWord;
+            
+            const options = [randomNumber];
+            while (options.length < 3) {
+                let wrongOption;
+                do {
+                    const variance = Math.floor(Math.random() * 20) + 1;
+                    const direction = Math.random() > 0.5 ? 1 : -1;
+                    wrongOption = randomNumber + (variance * direction);
+                    wrongOption = Math.max(1, Math.min(100, wrongOption));
+                } while (options.includes(wrongOption) || wrongOption === randomNumber);
+                options.push(wrongOption);
+            }
+            
+            level2State.options = shuffleArray(options);
+            
+            // ОБЛАКА ТЕПЕРЬ РАСПОЛАГАЮТСЯ НИЖЕ ЦЕЛИ
+            const isMobile = window.innerWidth <= 768;
+            const cloudPositions = isMobile ? [
+                {top: '350px', left: '20%'},   // Ниже для мобильных
+                {top: '350px', left: '50%'},
+                {top: '350px', left: '80%'}
+            ] : [
+                {top: '350px', left: '150px'},   // Ниже для десктопа
+                {top: '350px', left: '400px'},
+                {top: '350px', left: '650px'}
+            ];
+            
+            level2State.options.forEach((option, index) => {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.textContent = getOrdinalSuffix(option);
+                
+                if (cloudPositions[index]) {
+                    cloud.style.top = cloudPositions[index].top;
+                    cloud.style.left = cloudPositions[index].left;
+                    cloud.style.transform = 'translateX(-50%)';
+                }
+                
+                cloud.addEventListener('click', () => checkCloudAnswer(option));
+                cloudsGame.appendChild(cloud);
+            });
+        }
+
+        function checkCloudAnswer(selectedNumber) {
+            const isCorrect = selectedNumber === level2State.correctAnswer;
+            const clouds = document.querySelectorAll('.cloud');
+            
+            clouds.forEach(cloud => {
+                const cloudNumber = parseInt(cloud.textContent);
+                if (cloudNumber === level2State.correctAnswer) {
+                    cloud.classList.add('correct');
+                }
+                if (cloudNumber === selectedNumber && !isCorrect) {
+                    cloud.classList.add('wrong');
+                }
+            });
+            
+            if (isCorrect) {
+                level2State.correct++;
+                level2State.score += 10;
+                
+                const timeTaken = (Date.now() - level2State.startTime) / 1000;
+                let bonus = 0;
+                if (timeTaken < 2) bonus = 5;
+                else if (timeTaken < 4) bonus = 3;
+                else if (timeTaken < 6) bonus = 1;
+                
+                if (bonus > 0) {
+                    level2State.bonus += bonus;
+                    level2State.score += bonus;
+                    
+                    const bonusElem = document.createElement('div');
+                    bonusElem.className = 'timer-bonus';
+                    bonusElem.textContent = `+${bonus}⚡`;
+                    bonusElem.style.left = '50%';
+                    bonusElem.style.top = '200px';
+                    bonusElem.style.transform = 'translateX(-50%)';
+                    document.getElementById('clouds-game').appendChild(bonusElem);
+                    setTimeout(() => bonusElem.remove(), 1000);
+                }
+                
+                setTimeout(() => generateNewQuestion(), 1000);
+            } else {
+                level2State.lives--;
+                const hearts = document.querySelectorAll('.heart');
+                if (hearts[3 - level2State.lives - 1]) {
+                    hearts[3 - level2State.lives - 1].classList.add('lost');
+                }
+                
+                if (level2State.lives <= 0) {
+                    setTimeout(() => finishLevel(2), 1500);
+                    return;
+                }
+                
+                setTimeout(() => generateNewQuestion(), 1500);
+            }
+            
+            updateLevel2Display();
+        }
+
+        function updateLevel2Display() {
+            document.getElementById('correct-count').textContent = level2State.correct;
+            document.getElementById('score-level2').textContent = level2State.score;
+            document.getElementById('bonus-count').textContent = level2State.bonus;
+        }
+
+        // ========== УРОВЕНЬ 3 - ГОРОД ==========
+        const PLACES_DATA = [
+            { id: 'cinema', name: 'Cinema', emoji: '🎬', position: {top: '30px', left: '30px'} },
+            { id: 'park', name: 'Park', emoji: '🌳', position: {top: '200px', left: '150px'} },
+            { id: 'school', name: 'School', emoji: '🏫', position: {top: '30px', left: '500px'} },
+            { id: 'cafe', name: 'Cafe', emoji: '☕', position: {top: '300px', left: '30px'} },
+            { id: 'zoo', name: 'Zoo', emoji: '🐯', position: {top: '300px', left: '400px'} },
+            { id: 'library', name: 'Library', emoji: '📚', position: {top: '150px', left: '650px'} },
+            { id: 'hospital', name: 'Hospital', emoji: '🏥', position: {top: '400px', left: '200px'} },
+            { id: 'shops', name: 'Shops', emoji: '🛍️', position: {top: '200px', left: '450px'} }
+        ];
+
+        // ИСПРАВЛЕННЫЕ ЗАДАНИЯ - БЕЗ ПОДСКАЗОК
+        const PLACE_TASKS = {
+            cinema: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Вчера мы смотрели интересный фильм!',
+                    content: 'We ___ at the cinema yesterday.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'were',
+                    explanation: 'Правильно! We (мы) = were'
+                },
+                {
+                    type: 'sentence_build',
+                    title: 'Задание 2: Составь предложение',
+                    instruction: 'Расставь слова в правильном порядке:',
+                    words: ['wasn\'t', 'My sister', 'at the cinema', 'yesterday'],
+                    correct: 'My sister wasn\'t at the cinema yesterday.',
+                    explanation: 'Отлично! Правильный порядок слов.'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'He ___ at the cinema, but he was at the park yesterday.',
+                    gap: "wasn't",
+                    explanation: 'Верно! He wasn\'t at the cinema, but he was at the park yesterday.'
+                }
+            ],
+            park: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Погода была прекрасная!',
+                    content: 'The weather ___ beautiful in the park.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'was',
+                    explanation: 'Правильно! The weather (погода) = it = was'
+                },
+                {
+                    type: 'question_form',
+                    title: 'Задание 2: Задай вопрос',
+                    instruction: 'Создай вопрос из утверждения:',
+                    statement: 'They were in the park.',
+                    correct: 'Were they in the park?',
+                    explanation: 'Правильно! Were + they + место?'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'The children ___ in the park, but they were at school.',
+                    gap: "weren't",
+                    explanation: 'Верно! The children weren\'t in the park, but they were at school.'
+                }
+            ],
+            school: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Вчера у нас был тест.',
+                    content: 'I ___ at school yesterday.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'was',
+                    explanation: 'Правильно! I = was'
+                },
+                {
+                    type: 'multiple_choice',
+                    title: 'Задание 2: Выбери ответ',
+                    instruction: 'Выбери правильный ответ на вопрос:',
+                    question: 'Was the teacher in the classroom?',
+                    options: [
+                        'Yes, she was.',
+                        'No, she wasn\'t.',
+                        'Yes, they were.',
+                        'No, they weren\'t.'
+                    ],
+                    correct: 'Yes, she was.',
+                    explanation: 'Верно!'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'The books were on the table, but they ___ in the bag.',
+                    gap: "weren't",
+                    explanation: 'Верно! The books were on the table, but they weren\'t in the bag.'
+                }
+            ],
+            cafe: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Мы пили вкусный горячий шоколад.',
+                    content: 'We ___ at the cafe last Sunday.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'were',
+                    explanation: 'Правильно! We = were'
+                },
+                {
+                    type: 'sentence_build',
+                    title: 'Задание 2: Составь предложение',
+                    instruction: 'Расставь слова в правильном порядке:',
+                    words: ['weren\'t', 'My friends', 'at the cafe', 'yesterday'],
+                    correct: 'My friends weren\'t at the cafe yesterday.',
+                    explanation: 'Отлично!'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'She was at the cafe, but she ___ at home.',
+                    gap: "wasn't",
+                    explanation: 'Верно! She was at the cafe, but she wasn\'t at home.'
+                }
+            ],
+            zoo: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Жираф был очень высоким!',
+                    content: 'The giraffe ___ very tall.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'was',
+                    explanation: 'Правильно! The giraffe (жираф) = he/it = was'
+                },
+                {
+                    type: 'multiple_choice',
+                    title: 'Задание 2: Выбери ответ',
+                    instruction: 'Выбери правильный ответ на вопрос:',
+                    question: 'Were the monkeys funny?',
+                    options: [
+                        'Yes, it was.',
+                        'No, it wasn\'t.',
+                        'Yes, they were.',
+                        'No, they weren\'t.'
+                    ],
+                    correct: 'Yes, they were.',
+                    explanation: 'Верно! Monkeys (обезьяны) = they'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'The elephant ___ in the cage, but it was in the open area.',
+                    gap: "wasn't",
+                    explanation: 'Верно! The elephant wasn\'t in the cage, but it was in the open area.'
+                }
+            ],
+            library: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'В библиотеке было очень тихо.',
+                    content: 'It ___ very quiet in the library.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'was',
+                    explanation: 'Правильно! It = was'
+                },
+                {
+                    type: 'question_form',
+                    title: 'Задание 2: Задай вопрос',
+                    instruction: 'Создай вопрос из утверждения:',
+                    statement: 'You were in the library.',
+                    correct: 'Were you in the library?',
+                    explanation: 'Правильно!'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'The students were in the library, but they ___ in the classroom.',
+                    gap: "weren't",
+                    explanation: 'Верно! The students were in the library, but they weren\'t in the classroom.'
+                }
+            ],
+            hospital: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'Мой друг был в больнице на прошлой неделе.',
+                    content: 'My friend ___ in the hospital last week.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'was',
+                    explanation: 'Правильно! My friend (друг) = he = was'
+                },
+                {
+                    type: 'sentence_build',
+                    title: 'Задание 2: Составь предложение',
+                    instruction: 'Расставь слова в правильном порядке:',
+                    words: ['were', 'The doctors', 'very busy', 'yesterday'],
+                    correct: 'The doctors were very busy yesterday.',
+                    explanation: 'Отлично!'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'She ___ in the hospital, but she was at work.',
+                    gap: "wasn't",
+                    explanation: 'Верно! She wasn\'t in the hospital, but she was at work.'
+                }
+            ],
+            shops: [
+                {
+                    type: 'gap_fill',
+                    title: 'Задание 1: Выбери was/were',
+                    instruction: 'В магазинах было много людей.',
+                    content: 'There ___ many people at the shops.',
+                    options: ['was', 'were', "wasn't", "weren't"],
+                    correct: 'were',
+                    explanation: 'Правильно! Many people (много людей) = they = were'
+                },
+                {
+                    type: 'multiple_choice',
+                    title: 'Задание 2: Выбери ответ',
+                    instruction: 'Выбери правильный ответ на вопрос:',
+                    question: 'Was the shop open?',
+                    options: [
+                        'Yes, it was.',
+                        'No, it wasn\'t.',
+                        'Yes, they were.',
+                        'No, they weren\'t.'
+                    ],
+                    correct: 'Yes, it was.',
+                    explanation: 'Верно! The shop (магазин) = it'
+                },
+                {
+                    type: 'negative_gap',
+                    title: 'Задание 3: Заполни пропуск',
+                    instruction: 'Дополни предложение:',
+                    content: 'The new shoes were in the window, but they ___ on the shelf.',
+                    gap: "weren't",
+                    explanation: 'Верно! The new shoes were in the window, but they weren\'t on the shelf.'
+                }
+            ]
+        };
+
+        function startLevel3() {
+            level3State.currentPlace = null;
+            level3State.currentTaskIndex = 0;
+            level3State.score = 0;
+            level3State.visitedPlaces.clear();
+            level3State.completedTasks.clear();
+            
+            updateLevel3Display();
+            renderCityMap();
+            
+            document.getElementById('task-container').style.display = 'none';
+            document.getElementById('map-controls').style.display = 'block';
+        }
+
+        function renderCityMap() {
+            const cityMap = document.getElementById('city-map');
+            cityMap.innerHTML = '';
+            
+            PLACES_DATA.forEach(place => {
+                const isVisited = level3State.visitedPlaces.has(place.id);
+                const building = document.createElement('div');
+                building.className = `building ${isVisited ? 'visited' : ''}`;
+                building.id = `building-${place.id}`;
+                building.innerHTML = `
+                    <div class="place-image">${place.emoji}</div>
+                    <div>${place.name}</div>
+                    ${isVisited ? '<div style="font-size: 0.9rem; color: green;">✓ Выполнено</div>' : ''}
+                `;
+                
+                // Адаптация позиций для мобильных устройств
+                const isMobile = window.innerWidth <= 768;
+                let top = place.position.top;
+                let left = place.position.left;
+                
+                if (isMobile) {
+                    // Корректировка позиций для мобильных
+                    const positions = [
+                        {top: '30px', left: '30px'},
+                        {top: '150px', left: '50%'},
+                        {top: '30px', left: 'calc(100% - 160px)'},
+                        {top: '270px', left: '30px'},
+                        {top: '270px', left: '50%'},
+                        {top: '150px', left: 'calc(100% - 160px)'},
+                        {top: '350px', left: '30px'},
+                        {top: '350px', left: 'calc(100% - 160px)'}
+                    ];
+                    
+                    const index = PLACES_DATA.findIndex(p => p.id === place.id);
+                    if (positions[index]) {
+                        top = positions[index].top;
+                        left = positions[index].left;
+                        building.style.transform = 'translateX(-50%)';
+                    }
+                }
+                
+                building.style.top = top;
+                building.style.left = left;
+                building.addEventListener('click', () => visitPlace(place));
+                cityMap.appendChild(building);
+            });
+        }
+
+        function visitPlace(place) {
+            level3State.currentPlace = place;
+            level3State.currentTaskIndex = 0;
+            level3State.visitedPlaces.add(place.id);
+            document.getElementById(`building-${place.id}`).classList.add('visited');
+            showTaskScreen();
+        }
+
+        function showTaskScreen() {
+            document.getElementById('city-map').style.display = 'none';
+            document.getElementById('map-controls').style.display = 'none';
+            document.getElementById('task-container').style.display = 'block';
+            loadCurrentTask();
+        }
+
+        function backToMap() {
+            document.getElementById('task-screen').innerHTML = '';
+            document.getElementById('task-container').style.display = 'none';
+            document.getElementById('city-map').style.display = 'block';
+            document.getElementById('map-controls').style.display = 'block';
+        }
+
+        function loadCurrentTask() {
+            const tasks = PLACE_TASKS[level3State.currentPlace.id];
+            if (!tasks || level3State.currentTaskIndex >= tasks.length) {
+                backToMap();
+                updateLevel3Display();
+                return;
+            }
+            
+            const task = tasks[level3State.currentTaskIndex];
+            const taskScreen = document.getElementById('task-screen');
+            taskScreen.innerHTML = '';
+            
+            const title = document.createElement('h3');
+            title.textContent = task.title;
+            title.style.color = '#8a2387';
+            taskScreen.appendChild(title);
+            
+            const instruction = document.createElement('p');
+            instruction.textContent = task.instruction;
+            instruction.style.fontSize = '1.2rem';
+            instruction.style.marginBottom = '20px';
+            taskScreen.appendChild(instruction);
+            
+            switch(task.type) {
+                case 'gap_fill':
+                    createGapFillTask(task, taskScreen);
+                    break;
+                case 'sentence_build':
+                    createSentenceBuildTask(task, taskScreen);
+                    break;
+                case 'negative_gap':
+                    createNegativeGapTask(task, taskScreen);
+                    break;
+                case 'question_form':
+                    createQuestionFormTask(task, taskScreen);
+                    break;
+                case 'multiple_choice':
+                    createMultipleChoiceTask(task, taskScreen);
+                    break;
+            }
+            
+            document.getElementById('btn-next-task').disabled = true;
+            document.getElementById('btn-next-task').onclick = nextTask;
+        }
+
+        function createGapFillTask(task, container) {
+            const sentence = document.createElement('div');
+            sentence.style.fontSize = '1.8rem';
+            sentence.style.margin = '30px 0';
+            sentence.style.padding = '20px';
+            sentence.style.background = '#f5f5f5';
+            sentence.style.borderRadius = '10px';
+            sentence.style.textAlign = 'center';
+            
+            const parts = task.content.split('___');
+            sentence.innerHTML = `
+                ${parts[0]}
+                <select class="gap-input" id="answer-select" style="font-size: 1.5rem;">
+                    <option value="">-- Выбери --</option>
+                    ${task.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+                ${parts[1]}
+            `;
+            
+            container.appendChild(sentence);
+            
+            document.getElementById('answer-select').addEventListener('change', function() {
+                const isCorrect = this.value === task.correct;
+                document.getElementById('btn-next-task').disabled = !isCorrect;
+                
+                if (isCorrect) {
+                    this.style.borderColor = '#4CAF50';
+                    this.style.background = '#c8e6c9';
+                    showFeedback(task.explanation, true);
+                } else {
+                    this.style.borderColor = '#f44336';
+                    this.style.background = '#ffcdd2';
+                    showFeedback(`Попробуй еще!`, false);
+                }
+            });
+        }
+
+        function createSentenceBuildTask(task, container) {
+            const wordsContainer = document.createElement('div');
+            wordsContainer.className = 'sentence-parts';
+            wordsContainer.id = 'words-container';
+            
+            const shuffledWords = [...task.words].sort(() => Math.random() - 0.5);
+            
+            shuffledWords.forEach(word => {
+                const wordPiece = document.createElement('div');
+                wordPiece.className = 'word-piece';
+                wordPiece.textContent = word;
+                wordPiece.draggable = true;
+                
+                wordPiece.addEventListener('dragstart', (e) => {
+                    level3State.draggedElement = wordPiece;
+                    wordPiece.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', word);
+                });
+                
+                wordPiece.addEventListener('dragend', () => {
+                    wordPiece.classList.remove('dragging');
+                    level3State.draggedElement = null;
+                });
+                
+                wordsContainer.appendChild(wordPiece);
+            });
+            
+            container.appendChild(wordsContainer);
+            
+            const sentenceContainer = document.createElement('div');
+            sentenceContainer.className = 'sentence-parts';
+            sentenceContainer.id = 'sentence-container';
+            sentenceContainer.style.minHeight = '100px';
+            sentenceContainer.style.background = '#e8f5e9';
+            
+            sentenceContainer.addEventListener('dragover', (e) => e.preventDefault());
+            
+            sentenceContainer.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (level3State.draggedElement) {
+                    const word = level3State.draggedElement.textContent;
+                    const placedWord = document.createElement('div');
+                    placedWord.className = 'word-piece placed';
+                    placedWord.textContent = word;
+                    placedWord.draggable = true;
+                    
+                    placedWord.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', word);
+                    });
+                    
+                    placedWord.addEventListener('click', () => {
+                        level3State.draggedElement.style.display = 'block';
+                        placedWord.remove();
+                        checkSentence();
+                    });
+                    
+                    sentenceContainer.appendChild(placedWord);
+                    level3State.draggedElement.style.display = 'none';
+                    checkSentence();
+                }
+            });
+            
+            container.appendChild(sentenceContainer);
+            
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'btn btn-primary';
+            checkBtn.textContent = 'Проверить предложение';
+            checkBtn.style.marginTop = '20px';
+            checkBtn.onclick = checkSentence;
+            container.appendChild(checkBtn);
+            
+            window.checkSentence = function() {
+                const placedWords = Array.from(document.querySelectorAll('#sentence-container .word-piece'))
+                    .map(el => el.textContent)
+                    .join(' ');
+                const normalizedPlaced = placedWords.replace(/\s+/g, ' ').trim();
+                const normalizedCorrect = task.correct.replace(/\s+/g, ' ').trim();
+                const isCorrect = normalizedPlaced === normalizedCorrect;
+                document.getElementById('btn-next-task').disabled = !isCorrect;
+                
+                if (isCorrect) {
+                    showFeedback(task.explanation, true);
+                    sentenceContainer.classList.add('correct-flash');
+                } else {
+                    showFeedback('Порядок слов не совсем правильный. Попробуй еще!', false);
+                }
+            };
+        }
+
+        function createNegativeGapTask(task, container) {
+            const sentence = document.createElement('div');
+            sentence.style.fontSize = '1.8rem';
+            sentence.style.margin = '30px 0';
+            sentence.style.padding = '20px';
+            sentence.style.background = '#f5f5f5';
+            sentence.style.borderRadius = '10px';
+            sentence.style.textAlign = 'center';
+            
+            const parts = task.content.split('___');
+            sentence.innerHTML = `
+                ${parts[0]}
+                <input type="text" class="gap-input" id="single-gap" 
+                       placeholder="was/were/wasn't/weren't" style="width: 180px;">
+                ${parts[1]}
+            `;
+            
+            container.appendChild(sentence);
+            
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'btn btn-primary';
+            checkBtn.textContent = 'Проверить ответ';
+            checkBtn.style.marginTop = '20px';
+            checkBtn.onclick = function() {
+                const answer = document.getElementById('single-gap').value.trim();
+                const correct = task.gap;
+                const isCorrect = answer.toLowerCase() === correct.toLowerCase();
+                document.getElementById('btn-next-task').disabled = !isCorrect;
+                
+                if (isCorrect) {
+                    document.getElementById('single-gap').style.borderColor = '#4CAF50';
+                    document.getElementById('single-gap').style.background = '#c8e6c9';
+                    showFeedback(task.explanation, true);
+                } else {
+                    document.getElementById('single-gap').style.borderColor = '#f44336';
+                    document.getElementById('single-gap').style.background = '#ffcdd2';
+                    showFeedback(`Попробуй еще!`, false);
+                }
+            };
+            container.appendChild(checkBtn);
+        }
+
+        function createQuestionFormTask(task, container) {
+            const sentence = document.createElement('div');
+            sentence.style.fontSize = '1.8rem';
+            sentence.style.margin = '30px 0';
+            sentence.style.padding = '20px';
+            sentence.style.background = '#f5f5f5';
+            sentence.style.borderRadius = '10px';
+            sentence.style.textAlign = 'center';
+            sentence.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <strong>Утверждение:</strong> ${task.statement}
+                </div>
+                <div>
+                    <strong>Вопрос:</strong> 
+                    <input type="text" class="gap-input" id="question-input" 
+                           placeholder="Введите вопрос..." style="width: 300px;">
+                </div>
+            `;
+            container.appendChild(sentence);
+            
+            const checkBtn = document.createElement('button');
+            checkBtn.className = 'btn btn-primary';
+            checkBtn.textContent = 'Проверить';
+            checkBtn.style.marginTop = '20px';
+            checkBtn.onclick = function() {
+                const answer = document.getElementById('question-input').value.trim();
+                const normalizedAnswer = answer.replace(/\s+/g, ' ');
+                const normalizedCorrect = task.correct.replace(/\s+/g, ' ');
+                const isCorrect = normalizedAnswer.toLowerCase() === normalizedCorrect.toLowerCase();
+                document.getElementById('btn-next-task').disabled = !isCorrect;
+                
+                if (isCorrect) {
+                    document.getElementById('question-input').style.borderColor = '#4CAF50';
+                    document.getElementById('question-input').style.background = '#c8e6c9';
+                    showFeedback(task.explanation, true);
+                } else {
+                    document.getElementById('question-input').style.borderColor = '#f44336';
+                    document.getElementById('question-input').style.background = '#ffcdd2';
+                    showFeedback(`Попробуй еще!`, false);
+                }
+            };
+            container.appendChild(checkBtn);
+        }
+
+        function createMultipleChoiceTask(task, container) {
+            const sentence = document.createElement('div');
+            sentence.style.fontSize = '1.8rem';
+            sentence.style.margin = '30px 0';
+            sentence.style.padding = '20px';
+            sentence.style.background = '#f5f5f5';
+            sentence.style.borderRadius = '10px';
+            sentence.style.textAlign = 'center';
+            sentence.innerHTML = `<strong>Вопрос:</strong> ${task.question}`;
+            container.appendChild(sentence);
+            
+            const choicesContainer = document.createElement('div');
+            choicesContainer.className = 'multiple-choice';
+            
+            task.options.forEach(option => {
+                const choiceBtn = document.createElement('button');
+                choiceBtn.className = 'choice-btn';
+                choiceBtn.textContent = option;
+                
+                choiceBtn.addEventListener('click', function() {
+                    document.querySelectorAll('.choice-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    const isCorrect = this.textContent === task.correct;
+                    document.getElementById('btn-next-task').disabled = !isCorrect;
+                    
+                    if (isCorrect) {
+                        showFeedback(task.explanation, true);
+                    } else {
+                        showFeedback('Попробуй еще!', false);
+                    }
+                });
+                choicesContainer.appendChild(choiceBtn);
+            });
+            container.appendChild(choicesContainer);
+        }
+
+        function showFeedback(message, isCorrect) {
+            const oldFeedback = document.getElementById('feedback-message');
+            if (oldFeedback) oldFeedback.remove();
+            
+            const feedback = document.createElement('div');
+            feedback.id = 'feedback-message';
+            feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            feedback.innerHTML = message;
+            document.getElementById('task-screen').appendChild(feedback);
+        }
+
+        function nextTask() {
+            level3State.currentTaskIndex++;
+            level3State.score += 10;
+            level3State.completedTasks.add(`${level3State.currentPlace.id}_${level3State.currentTaskIndex-1}`);
+            updateLevel3Display();
+            loadCurrentTask();
+        }
+
+        function updateLevel3Display() {
+            document.getElementById('places-count').textContent = 
+                `${level3State.visitedPlaces.size}/${PLACES_DATA.length}`;
+            document.getElementById('tasks-count').textContent = 
+                `${level3State.completedTasks.size}/${PLACES_DATA.length * 3}`;
+            document.getElementById('score-level3').textContent = level3State.score;
+        }
+
+        // Адаптация при изменении размера окна
+        window.addEventListener('resize', function() {
+            if (currentLevel === 3 && document.getElementById('city-map').style.display !== 'none') {
+                renderCityMap();
+            }
+            if (currentLevel === 2) {
+                // Обновить позиции облаков при ресайзе
+                const cloudsGame = document.getElementById('clouds-game');
+                if (cloudsGame.children.length > 1) {
+                    const clouds = cloudsGame.querySelectorAll('.cloud');
+                    const isMobile = window.innerWidth <= 768;
+                    const cloudPositions = isMobile ? [
+                        {top: '350px', left: '20%'},
+                        {top: '350px', left: '50%'},
+                        {top: '350px', left: '80%'}
+                    ] : [
+                        {top: '350px', left: '150px'},
+                        {top: '350px', left: '400px'},
+                        {top: '350px', left: '650px'}
+                    ];
+                    
+                    clouds.forEach((cloud, index) => {
+                        if (cloudPositions[index]) {
+                            cloud.style.top = cloudPositions[index].top;
+                            cloud.style.left = cloudPositions[index].left;
+                            cloud.style.transform = 'translateX(-50%)';
+                        }
+                    });
+                }
+            }
+        });
+
+        // ИНИЦИАЛИЗАЦИЯ
+        window.onload = function() {
+            console.log("🎮 Spotlight Challenge загружен!");
+            console.log("✅ Все 3 уровня готовы к игре!");
+        };
+    </script>
+</body>
+</html>
